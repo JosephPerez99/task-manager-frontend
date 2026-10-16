@@ -1,41 +1,36 @@
 
-/*
-  Componente: TaskSummary
-  Función: Mostrar el total de tareas, cuántas están pendientes
-  y cuántas ya se completaron.
-*/
+import type { Task } from '../models/task.interface';
 
-// Define los datos que recibirá el componente.
+// Recibo la colección de tareas desde el componente padre.
 interface TaskSummaryProps {
-  total: number;
-  pending: number;
-  completed: number;
+  tasks: Task[];
 }
 
 export function TaskSummary({
-  total,
-  pending,
-  completed,
+  tasks,
 }: TaskSummaryProps) {
+  // Cuento las tareas completadas y calculo las pendientes.
+  const completed = tasks.filter(
+    ({ status }) => status === 'completed',
+  ).length;
+
+  const pending = tasks.length - completed;
+
   return (
-    // Resumen general de las tareas
     <section
       className="summary-grid"
       aria-label="Resumen de tareas"
     >
-      {/* Cantidad total */}
       <article className="summary-card">
         <span>Total</span>
-        <strong>{total}</strong>
+        <strong>{tasks.length}</strong>
       </article>
 
-      {/* Cantidad de tareas pendientes */}
       <article className="summary-card">
         <span>Pendientes</span>
         <strong>{pending}</strong>
       </article>
 
-      {/* Cantidad de tareas completadas */}
       <article className="summary-card">
         <span>Completadas</span>
         <strong>{completed}</strong>

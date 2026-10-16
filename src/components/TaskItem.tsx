@@ -1,39 +1,46 @@
 
-/*
-  Componente: TaskItem
-  Función: Mostrar una tarea con su título, estado
-  y botones de acciones.
-*/
+import type { Task } from "../models/task.interface";
+import { TaskStatusBadge } from "./TaskStatusBadge";
 
-// Solo se permiten estos dos estados.
-type TaskStatus = 'pending' | 'completed';
-
-// Define los datos que recibirá el componente.
+// Defino qué datos debe recibir este componente.
 interface TaskItemProps {
-  title: string;
-  status: TaskStatus;
+  task: Task;
 }
 
-export function TaskItem({ title, status }: TaskItemProps) {
-  // Convierte el estado en un texto para mostrarlo.
-  const statusLabel =
-    status === 'completed' ? 'Completada' : 'Pendiente';
+// Convierto la fecha ISO en una fecha más fácil de leer.
+function formatTaskDate(value: string): string {
+  const date = new Date(value);
+
+  return new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "medium",
+  }).format(date);
+}
+
+export function TaskItem({ task }: TaskItemProps) {
+  // Extraigo del objeto los datos que voy a mostrar.
+  const { title, status, updatedAt } = task;
 
   return (
     <article
       className={`task-item task-item--${status}`}
       role="listitem"
     >
-      {/* Título y estado de la tarea */}
       <div className="task-item__content">
         <h3 className="task-item__title">{title}</h3>
 
-        <span className={`status-badge status-badge--${status}`}>
-          {statusLabel}
-        </span>
+        {/* Muestro el estado usando el componente reutilizable. */}
+        <TaskStatusBadge status={status} />
+
+        {/* Muestro cuándo se actualizó la tarea. */}
+        <p className="task-item__date">
+          Actualizada:{" "}
+          <time dateTime={updatedAt}>
+            {formatTaskDate(updatedAt)}
+          </time>
+        </p>
       </div>
 
-      {/* Botones desactivados en esta actividad */}
+      {/* Los botones siguen deshabilitados hasta la actividad 7. */}
       <div
         className="task-item__actions"
         role="group"
