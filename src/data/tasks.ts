@@ -37,4 +37,11 @@ export const tasks: Task[] = [
     createdAt: '2026-09-26T16:00:00.000Z',
     updatedAt: '2026-09-26T16:00:00.000Z',
   },
+  {
+    id: 'task-006',
+    title: 'Implementar pruebas unitarias',
+    status: 'pending',
+    createdAt: '2026-09-27T16:00:00.000Z',
+    updatedAt: '2026-09-27T16:00:00.000Z',
+  }
 ];
