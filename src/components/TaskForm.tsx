@@ -1,17 +1,31 @@
 
-/*
-  Componente: TaskForm
-  Función: Mostrar el formulario para escribir el título
-  de una tarea. Todavía no guarda tareas.
-*/
+import { useState } from 'react';
 
-export function TaskForm() {
+interface TaskFormProps {
+  onAddTask: (title: string) => void;
+}
+
+export function TaskForm({ onAddTask }: TaskFormProps) {
+  const [title, setTitle] = useState('');
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const normalizedTitle = title.trim();
+
+    if (!normalizedTitle) {
+      return;
+    }
+
+    onAddTask(normalizedTitle);
+    setTitle('');
+  }
+
   return (
     <section
       className="panel"
       aria-labelledby="task-form-title"
     >
-      {/* Encabezado del formulario */}
       <div className="section-heading">
         <div>
           <p className="section-heading__eyebrow">
@@ -21,8 +35,7 @@ export function TaskForm() {
         </div>
       </div>
 
-      {/* Campo de texto y botón para agregar tareas */}
-      <form className="task-form">
+      <form className="task-form" onSubmit={handleSubmit}>
         <label htmlFor="task-title">
           Título de la tarea
         </label>
@@ -34,17 +47,14 @@ export function TaskForm() {
             type="text"
             placeholder="Ejemplo: revisar documentación"
             maxLength={120}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
           />
 
-          
-          <button type="button" disabled>
+          <button type="submit">
             Agregar tarea
           </button>
         </div>
-
-        <p className="helper-text">
-          El formulario se activará en una actividad posterior.
-        </p>
       </form>
     </section>
   );

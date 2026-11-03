@@ -2,13 +2,19 @@
 import type { Task } from '../models/task.interface';
 import { TaskItem } from './TaskItem';
 
-// Recibo el arreglo de tareas desde el componente padre.
 interface TaskListProps {
   tasks: Task[];
+  onToggleStatus: (id: string) => void;
+  onEditTask: (id: string, title: string) => void;
+  onDeleteTask: (id: string) => void;
 }
 
-export function TaskList({ tasks }: TaskListProps) {
-  // Muestro el total con el texto en singular o plural.
+export function TaskList({
+  tasks,
+  onToggleStatus,
+  onEditTask,
+  onDeleteTask,
+}: TaskListProps) {
   const resultLabel =
     tasks.length === 1 ? '1 tarea' : `${tasks.length} tareas`;
 
@@ -28,7 +34,6 @@ export function TaskList({ tasks }: TaskListProps) {
         <span className="result-count">{resultLabel}</span>
       </div>
 
-      {/* Si no hay tareas, muestro un mensaje; si hay, genero la lista. */}
       {tasks.length === 0 ? (
         <div className="empty-state" role="status">
           <h3>No hay tareas registradas</h3>
@@ -39,11 +44,13 @@ export function TaskList({ tasks }: TaskListProps) {
         </div>
       ) : (
         <div className="task-list" role="list">
-          {/* Recorro el arreglo y creo un componente por cada tarea. */}
           {tasks.map((task) => (
             <TaskItem
               key={task.id}
               task={task}
+              onToggleStatus={onToggleStatus}
+              onEditTask={onEditTask}
+              onDeleteTask={onDeleteTask}
             />
           ))}
         </div>

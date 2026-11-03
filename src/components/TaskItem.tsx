@@ -1,24 +1,51 @@
 
-import type { Task } from "../models/task.interface";
-import { TaskStatusBadge } from "./TaskStatusBadge";
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import type { Task } from '../models/task.interface';
+import { TaskStatusBadge } from './TaskStatusBadge';
 
-// Defino qué datos debe recibir este componente.
 interface TaskItemProps {
   task: Task;
+  onToggleStatus: (id: string) => void;
+  onEditTask: (id: string, title: string) => void;
+  onDeleteTask: (id: string) => void;
 }
 
-// Convierto la fecha ISO en una fecha más fácil de leer.
 function formatTaskDate(value: string): string {
   const date = new Date(value);
 
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
+  return new Intl.DateTimeFormat('es-MX', {
+    dateStyle: 'medium',
   }).format(date);
 }
 
-export function TaskItem({ task }: TaskItemProps) {
-  // Extraigo del objeto los datos que voy a mostrar.
-  const { title, status, updatedAt } = task;
+export function TaskItem({
+  task,
+  onToggleStatus,
+  onEditTask,
+  onDeleteTask,
+}: TaskItemProps) {
+  const { id, title, status, updatedAt } = task;
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(title);
+
+  function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const normalizedTitle = draftTitle.trim();
+
+    if (!normalizedTitle) {
+      return;
+    }
+
+    onEditTask(id, normalizedTitle);
+    setIsEditing(false);
+  }
+
+  function handleCancel() {
+    setDraftTitle(title);
+    setIsEditing(false);
+  }
 
   return (
     <article
@@ -26,42 +53,78 @@ export function TaskItem({ task }: TaskItemProps) {
       role="listitem"
     >
       <div className="task-item__content">
-        <h3 className="task-item__title">{title}</h3>
+        {isEditing ? (
+          <form
+            className="task-item__edit-form"
+            onSubmit={handleSave}
+          >
+            <label className="sr-only" htmlFor={`edit-${id}`}>
+              Editar título de la tarea
+            </label>
 
-        {/* Muestro el estado usando el componente reutilizable. */}
-        <TaskStatusBadge status={status} />
+            <input
+              id={`edit-${id}`}
+              className="task-item__edit-input"
+              type="text"
+              value={draftTitle}
+              maxLength={120}
+              onChange={(event) => setDraftTitle(event.target.value)}
+            />
 
-        {/* Muestro cuándo se actualizó la tarea. */}
-        <p className="task-item__date">
-          Actualizada:{" "}
-          <time dateTime={updatedAt}>
-            {formatTaskDate(updatedAt)}
-          </time>
-        </p>
+            <div className="task-item__edit-actions">
+              <button type="submit">Guardar</button>
+              <button type="button" onClick={handleCancel}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <h3 className="task-item__title">{title}</h3>
+            <TaskStatusBadge status={status} />
+
+            <p className="task-item__date">
+              Actualizada:{' '}
+              <time dateTime={updatedAt}>
+                {formatTaskDate(updatedAt)}
+              </time>
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Los botones siguen deshabilitados hasta la actividad 7. */}
-      <div
-        className="task-item__actions"
-        role="group"
-        aria-label={`Acciones para ${title}`}
-      >
-        <button type="button" disabled>
-          Cambiar estado
-        </button>
-
-        <button type="button" disabled>
-          Editar
-        </button>
-
-        <button
-          type="button"
-          className="button-danger"
-          disabled
+      {!isEditing && (
+        <div
+          className="task-item__actions"
+          role="group"
+          aria-label={`Acciones para ${title}`}
         >
-          Eliminar
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => onToggleStatus(id)}
+          >
+            {status === 'pending' ? 'Completar' : 'Reabrir'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setDraftTitle(title);
+              setIsEditing(true);
+            }}
+          >
+            Editar
+          </button>
+
+          <button
+            type="button"
+            className="button-danger"
+            onClick={() => onDeleteTask(id)}
+          >
+            Eliminar
+          </button>
+        </div>
+      )}
     </article>
   );
 }
