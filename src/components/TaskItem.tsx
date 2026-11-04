@@ -1,7 +1,10 @@
-
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Task } from '../models/task.interface';
+import {
+  TASK_TITLE_MAX_LENGTH,
+  validateTaskTitle,
+} from '../utils/task-validation';
 import { TaskStatusBadge } from './TaskStatusBadge';
 
 interface TaskItemProps {
@@ -28,28 +31,46 @@ export function TaskItem({
   const { id, title, status, updatedAt } = task;
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState(title);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSave(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function handleStartEdit(): void {
+    setDraftTitle(title);
+    setError(null);
+    setIsEditing(true);
+  }
 
-    const normalizedTitle = draftTitle.trim();
-
-    if (!normalizedTitle) {
-      return;
-    }
-
-    onEditTask(id, normalizedTitle);
+  function handleCancel(): void {
+    setDraftTitle(title);
+    setError(null);
     setIsEditing(false);
   }
 
-  function handleCancel() {
-    setDraftTitle(title);
+  function handleTitleChange(value: string): void {
+    setDraftTitle(value);
+
+    if (error) {
+      setError(validateTaskTitle(value));
+    }
+  }
+
+  function handleSave(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+
+    const validationError = validateTaskTitle(draftTitle);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    onEditTask(id, draftTitle.trim());
+    setError(null);
     setIsEditing(false);
   }
 
   return (
     <article
-      className={`task-item task-item--${status}`}
+      className="task-item"
       role="listitem"
     >
       <div className="task-item__content">
@@ -67,9 +88,26 @@ export function TaskItem({
               className="task-item__edit-input"
               type="text"
               value={draftTitle}
-              maxLength={120}
-              onChange={(event) => setDraftTitle(event.target.value)}
+              maxLength={TASK_TITLE_MAX_LENGTH}
+              onChange={(event) =>
+                handleTitleChange(event.target.value)
+              }
+              aria-invalid={Boolean(error)}
+              aria-describedby={
+                error ? `edit-error-${id}` : undefined
+              }
+              autoFocus
             />
+
+            {error && (
+              <p
+                id={`edit-error-${id}`}
+                className="field-error"
+                role="alert"
+              >
+                {error}
+              </p>
+            )}
 
             <div className="task-item__edit-actions">
               <button type="submit">Guardar</button>
@@ -108,10 +146,7 @@ export function TaskItem({
 
           <button
             type="button"
-            onClick={() => {
-              setDraftTitle(title);
-              setIsEditing(true);
-            }}
+            onClick={handleStartEdit}
           >
             Editar
           </button>

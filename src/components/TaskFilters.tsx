@@ -1,63 +1,114 @@
+import type {
+  TaskFilter,
+  TaskSort,
+} from '../models/task-view.types';
 
-/*
-  Componente: TaskFilters
-  Función: Mostrar los controles para buscar, filtrar
-  y ordenar las tareas. Por ahora son demostrativos.
-*/
+interface TaskFiltersProps {
+  query: string;
+  filter: TaskFilter;
+  sortBy: TaskSort;
+  resultCount: number;
+  onQueryChange: (value: string) => void;
+  onFilterChange: (value: TaskFilter) => void;
+  onSortChange: (value: TaskSort) => void;
+  onClear: () => void;
+}
 
-export function TaskFilters() {
+export function TaskFilters({
+  query,
+  filter,
+  sortBy,
+  resultCount,
+  onQueryChange,
+  onFilterChange,
+  onSortChange,
+  onClear,
+}: TaskFiltersProps) {
+  const hasActiveCriteria =
+    query.trim() !== '' ||
+    filter !== 'all' ||
+    sortBy !== 'updated-desc';
+
+  const resultLabel =
+    resultCount === 1
+      ? '1 resultado'
+      : `${resultCount} resultados`;
+
   return (
     <section
       className="panel"
-      aria-labelledby="filters-title"
+      aria-labelledby="task-filters-title"
     >
-      {/* Encabezado de la sección */}
       <div className="section-heading">
         <div>
           <p className="section-heading__eyebrow">
-            Consulta
+            Organización
           </p>
-          <h2 id="filters-title">Buscar y organizar</h2>
+          <h2 id="task-filters-title">
+            Buscar y filtrar tareas
+          </h2>
         </div>
       </div>
 
-      {/* Controles para consultar las tareas */}
       <div className="filters-grid">
-        <div className="field">
-          <label htmlFor="task-search">
-            Buscar por título
-          </label>
+        <label className="filter-field">
+          <span>Buscar por título</span>
           <input
-            id="task-search"
             type="search"
-            placeholder="Escribe una palabra"
+            value={query}
+            onChange={(event) =>
+              onQueryChange(event.target.value)
+            }
+            placeholder="Escribe para buscar..."
           />
-        </div>
+        </label>
 
-        <div className="field">
-          <label htmlFor="status-filter">Estado</label>
-          <select id="status-filter" defaultValue="all">
+        <label className="filter-field">
+          <span>Estado</span>
+          <select
+            value={filter}
+            onChange={(event) =>
+              onFilterChange(event.target.value as TaskFilter)
+            }
+          >
             <option value="all">Todas</option>
             <option value="pending">Pendientes</option>
             <option value="completed">Completadas</option>
           </select>
-        </div>
+        </label>
 
-        <div className="field">
-          <label htmlFor="task-order">Orden</label>
-          <select id="task-order" defaultValue="newest">
-            <option value="newest">Más recientes</option>
-            <option value="oldest">Más antiguas</option>
-            <option value="title">Por título</option>
+        <label className="filter-field">
+          <span>Ordenar por</span>
+          <select
+            value={sortBy}
+            onChange={(event) =>
+              onSortChange(event.target.value as TaskSort)
+            }
+          >
+            <option value="updated-desc">
+              Actualización reciente
+            </option>
+            <option value="created-desc">
+              Creación reciente
+            </option>
+            <option value="title-asc">
+              Título A-Z
+            </option>
           </select>
-        </div>
+        </label>
       </div>
 
-      {/* Aclara que los controles todavía no tienen funcionalidad */}
-      <p className="helper-text">
-        Los controles son demostrativos y todavía no modifican
-        los resultados.
+      <p className="filter-results" role="status">
+        {resultLabel}
       </p>
+
+      <button
+        type="button"
+        onClick={onClear}
+        disabled={!hasActiveCriteria}
+      >
+        Limpiar filtros
+      </button>
     </section>
   );
 }
