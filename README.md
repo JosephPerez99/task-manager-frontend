@@ -1,15 +1,13 @@
 # Administrador de tareas - Frontend
 
 Aplicación web para registrar y organizar tareas. El proyecto se desarrolla
-con React y TypeScript, y utiliza Vite para ejecutar y compilar la aplicación.
-La interfaz está organizada en componentes y la información se conserva en el
-almacenamiento local del navegador.
+con React, TypeScript, React Router y Vite; PNPM administra sus herramientas.
+La interfaz está organizada en páginas y componentes, y la información se
+conserva en el almacenamiento local del navegador.
 
 Esta documentación describe el código que existe actualmente y complementa la
 guía de cierre de la actividad en
 [`docs/preguntas-cierre-ec2-f1-a5.md`](./docs/preguntas-cierre-ec2-f1-a5.md).
-
-
 
 ## Contenido
 
@@ -56,6 +54,9 @@ pnpm preview
 ## Funciones de la aplicación
 
 - Crear una tarea con un título de entre 3 y 120 caracteres.
+- Navegar entre Inicio y Tareas sin recargar la página completa.
+- Abrir el detalle de una tarea en una dirección propia.
+- Mostrar un aviso cuando la dirección o tarea no existe.
 - Consultar tareas iniciales de demostración o las guardadas previamente.
 - Buscar por texto del título, sin distinguir entre mayúsculas y minúsculas.
 - Filtrar por todas las tareas, pendientes o completadas.
@@ -68,29 +69,48 @@ pnpm preview
   resultados.
 
 > **Cómo funciona al usarla:** escribe una tarea y pulsa “Agregar tarea”.
-> Después puedes buscarla, cambiar qué tareas aparecen, cambiar su estado,
-> editarla o eliminarla. Los números del resumen se actualizan con las tareas
-> guardadas.
+> Desde Inicio puedes abrir Tareas, buscar, cambiar qué tareas aparecen,
+> cambiar su estado, editarla o eliminarla. “Ver detalle” abre una página con
+> la información completa de una tarea. Los números del resumen se actualizan
+> con las tareas guardadas.
+
+### Direcciones de la aplicación
+
+| Dirección | Qué muestra |
+| --- | --- |
+| `/` | Inicio y resumen de tareas. |
+| `/tasks` | Formulario, búsqueda, filtros, resumen y lista de tareas. |
+| `/tasks/:taskId` | Información completa de la tarea cuyo identificador aparece en la dirección. |
+| Cualquier otra dirección | Aviso de que la página no se encontró. |
+
+En `/tasks/:taskId`, `:taskId` representa el identificador real de una tarea.
+Por ejemplo, `/tasks/task-001` abre el detalle de la tarea `task-001`.
 
 ## Cómo se organiza y funciona
 
 1. `index.html` contiene el espacio vacío de la página donde aparecerá la app.
-2. `src/main.tsx` pone en marcha React, carga la apariencia y muestra la app en
-   ese espacio.
-3. `src/App.tsx` coordina la pantalla y recuerda las tareas y las opciones de
-   búsqueda. También decide qué hacer cuando se agrega, edita o elimina una
-   tarea.
+2. `src/main.tsx` pone en marcha React, prepara la navegación y muestra la app
+   en ese espacio.
+3. `src/App.tsx` coordina las tareas, su guardado y las páginas que
+   corresponden a cada dirección. También decide qué hacer cuando se agrega,
+   edita o elimina una tarea.
 4. `src/services/task-storage.service.ts` busca las tareas guardadas en el
    navegador y las actualiza cuando cambian. Si no encuentra tareas guardadas
    que pueda usar, carga los ejemplos del proyecto.
 5. `src/services/task-query.service.ts` prepara la lista que se debe mostrar:
    busca, filtra y ordena las tareas según lo que eligió la persona.
-6. Los archivos de `src/components/` construyen las partes visibles de la
-   página: el encabezado, el formulario, los filtros, el resumen y la lista.
+6. `src/layouts/AppLayout.tsx` mantiene el encabezado, el menú y el pie de
+   página mientras se cambia de vista.
+7. Los archivos de `src/pages/` construyen Inicio, Tareas, el detalle y el
+   aviso para direcciones que no existen.
+8. Los archivos de `src/components/` construyen las piezas compartidas de las
+   páginas: el encabezado, la navegación, el formulario, los filtros, el
+   resumen y cada tarea.
 
 > **Una comparación:** `App.tsx` es como la persona que coordina el trabajo;
-> los componentes son las distintas partes de la pantalla; y los servicios
-> ayudan a buscar o guardar la información.
+> las páginas son las distintas secciones del sitio; el layout es el marco
+> compartido; y los componentes son las piezas que aparecen dentro de cada
+> sección.
 
 ## Estructura de carpetas y archivos
 
@@ -117,9 +137,11 @@ pnpm preview
 | `public/` | Imágenes y otros recursos que la página puede mostrar directamente. |
 | `src/` | El código que hace funcionar la aplicación. |
 | `src/assets/` | Imágenes y recursos que se pueden usar desde el código de la aplicación. |
-| `src/components/` | Las piezas que forman la pantalla, como el formulario y cada tarea. |
+| `src/components/` | Las piezas que forman la pantalla, como el encabezado, el menú, el formulario y cada tarea. |
 | `src/data/` | Tareas de ejemplo que se muestran si todavía no hay tareas guardadas. |
+| `src/layouts/` | La estructura que se repite al cambiar de página, como el encabezado, el menú y el pie. |
 | `src/models/` | Las reglas que describen qué datos tiene una tarea y qué opciones se permiten. |
+| `src/pages/` | El contenido de cada dirección: Inicio, Tareas, detalle o página no encontrada. |
 | `src/services/` | Ayudantes que se encargan de buscar, ordenar y guardar las tareas. |
 | `src/styles/` | Las reglas que controlan colores, tamaños, espacios y cómo se ve la página en distintas pantallas. |
 | `src/utils/` | Pequeños ayudantes para tareas concretas, como revisar que un título sea válido. |
@@ -132,22 +154,30 @@ pnpm preview
 | `public/favicon.svg` | El pequeño dibujo que aparece como ícono de la página en el navegador. |
 | `public/icons.svg` | Una colección de dibujos de iconos. Actualmente la aplicación no los muestra. |
 | `src/assets/hero.png` | Una imagen disponible para el proyecto. Actualmente no aparece en la aplicación. |
-| `src/main.tsx` | Enciende la aplicación y la coloca dentro del espacio preparado en la página inicial. |
-| `src/App.tsx` | Coordina las partes de la aplicación y decide cómo cambian y se muestran las tareas. |
+| `src/main.tsx` | Enciende la aplicación, prepara la navegación y la coloca dentro del espacio de la página inicial. |
+| `src/App.tsx` | Coordina las tareas, su guardado y las páginas que corresponden a cada dirección. |
 | `src/components/AppHeader.tsx` | Muestra el título y una breve descripción de la aplicación. |
+| `src/components/AppNavigation.tsx` | Muestra los enlaces de Inicio y Tareas e indica cuál está seleccionado. |
 | `src/components/TaskForm.tsx` | Permite escribir una tarea nueva y comprueba que el título sirva antes de agregarla. |
 | `src/components/TaskFilters.tsx` | Permite buscar tareas, elegir cuáles ver y cambiar el orden de la lista. |
 | `src/components/TaskSummary.tsx` | Muestra cuántas tareas hay en total, cuántas faltan y cuántas están listas. |
 | `src/components/TaskList.tsx` | Muestra todas las tareas que coinciden con la búsqueda o avisa si no hay ninguna. |
 | `src/components/TaskItem.tsx` | Muestra una tarea y sus botones para completarla, editarla o eliminarla. |
 | `src/components/TaskStatusBadge.tsx` | Muestra con una etiqueta si la tarea está pendiente o completada. |
+| `src/layouts/AppLayout.tsx` | Mantiene el encabezado, el menú, el espacio de la página elegida y el pie de página. |
+| `src/pages/HomePage.tsx` | Presenta la bienvenida, un enlace para administrar tareas y el resumen. |
+| `src/pages/TasksPage.tsx` | Agrupa el formulario, los filtros, el resumen y la lista de tareas. |
+| `src/pages/TaskDetailPage.tsx` | Busca la tarea indicada en la dirección y muestra sus datos; permite volver o eliminarla. |
+| `src/pages/NotFoundPage.tsx` | Informa que no se encontró una página o tarea y ofrece volver a Inicio. |
 | `src/data/tasks.ts` | Contiene seis tareas de ejemplo para que la aplicación tenga contenido al empezar. |
 | `src/models/task.interface.ts` | Describe qué información debe tener cada tarea y cuáles son sus estados posibles. |
 | `src/models/task-view.types.ts` | Describe las opciones que se pueden elegir para buscar, filtrar y ordenar. |
 | `src/services/task-query.service.ts` | Encuentra las tareas que coinciden con lo que se escribió y las ordena. |
 | `src/services/task-storage.service.ts` | Recuerda las tareas en el navegador y las recupera cuando se vuelve a abrir la página. |
+| `src/utils/date.ts` | Presenta las fechas de las tareas en un formato fácil de leer. |
 | `src/utils/task-validation.ts` | Comprueba que el título no esté vacío y que tenga una longitud permitida. |
 | `src/styles/index.css` | Decide la apariencia de la aplicación: colores, tamaños, espacios y distribución. |
+| `docs/preguntas-cierre-ec3-f1-a9.md` | Responde las preguntas de cierre sobre navegación, páginas y rutas de la actividad. |
 
 > **Qué significa “actualmente no aparece”:** el archivo está en el proyecto,
 > pero la pantalla no lo utiliza. Se puede conservar para usarlo más adelante.
@@ -165,7 +195,8 @@ usando y comunica a las demás partes qué deben mostrar o hacer.
   pendiente a completada o de completada a pendiente.
 - `handleEditTask(id, title)`: encuentra la tarea y reemplaza su título.
 - `handleDeleteTask(id)`: pregunta si se desea borrar la tarea y solo la quita
-  de la lista cuando la persona confirma.
+  de la lista cuando la persona confirma. Informa si se borró para que la
+  página de detalle pueda regresar a la lista.
 - `handleClearCriteria()`: borra la búsqueda y devuelve los filtros y el orden
   a sus valores iniciales.
 - `getVisibleTasks(...)`: pide la lista que corresponde a la búsqueda, el
@@ -184,6 +215,8 @@ permite entender y modificar cada parte por separado.
 
 - **`AppHeader()`**: muestra el título y la descripción que aparecen arriba
   en la página.
+- **`AppNavigation()`**: muestra los enlaces para ir a Inicio o Tareas y marca
+  el que corresponde a la dirección actual.
 - **`TaskForm({ onAddTask })`**: muestra dónde escribir una tarea. Cuando se
   pulsa el botón, comprueba el título y avisa a `App` para que lo agregue.
   `handleTitleChange(value)` recoge lo que se escribe; `handleSubmit(event)`
@@ -196,7 +229,7 @@ permite entender y modificar cada parte por separado.
 - **`TaskList(props)`**: decide qué mostrar: un aviso si no hay resultados o
   una fila por cada tarea encontrada.
 - **`TaskItem(props)`**: muestra una tarea y sus acciones. Al editar, permite
-  guardar el cambio o cancelarlo. `handleStartEdit()` abre la edición;
+  abrir su detalle o cambiar el título. `handleStartEdit()` abre la edición;
   `handleCancel()` descarta los cambios sin guardar;
   `handleTitleChange(value)` recoge el texto nuevo, y
   `handleSave(event)` lo revisa y guarda si está bien.
@@ -210,11 +243,31 @@ son listas de lo que cada pieza de pantalla necesita recibir. Por ejemplo, la
 lista necesita las tareas y las acciones para cada una. Esto ayuda a detectar
 si falta algún dato o si se envía algo equivocado.
 
+### Páginas y marco compartido
+
+- **`AppLayout()`**, en `src/layouts/AppLayout.tsx`: muestra el encabezado, el
+  menú, el contenido de la página elegida y el pie de página. El marco queda
+  igual mientras cambia el contenido central.
+- **`HomePage({ tasks })`**: presenta una bienvenida, el resumen de tareas y
+  un enlace para abrir la administración.
+- **`TasksPage(props)`**: reúne el formulario y las herramientas existentes
+  para administrar las tareas. Recibe los datos y las acciones desde `App`;
+  no crea una segunda lista independiente.
+- **`TaskDetailPage({ tasks, onDeleteTask })`**: lee el identificador de la
+  dirección, encuentra la tarea y presenta su título, estado e historial de
+  fechas. Si se confirma la eliminación, vuelve a Tareas.
+- **`NotFoundPage({ title, message })`**: muestra un mensaje cuando la
+  dirección no existe o cuando no se encuentra la tarea pedida. Permite volver
+  a Inicio.
+- **`formatTaskDate(value)`**, en `src/utils/date.ts`: convierte la fecha
+  guardada en una fecha y hora legibles para la pantalla.
+
 ### Ayudantes y formas de los datos
 
 Estos archivos contienen tareas que no son una parte visible de la página:
 comprueban los títulos, encuentran tareas y las guardan. Los modelos describen
-qué información puede tener cada tarea.
+qué información puede tener cada tarea. React Router permite elegir qué página
+aparece en cada dirección.
 
 - **`validateTaskTitle(value)`**, en `src/utils/task-validation.ts`: revisa que
   el título tenga entre 3 y 120 caracteres, sin contar espacios al principio
@@ -266,6 +319,19 @@ explica con palabras sencillas y cuenta para qué se usan aquí.
 | **Estado (`state`)** | La información que la aplicación recuerda mientras está abierta, como el texto que se está buscando. |
 | **`useState`** | Una herramienta de React para recordar un dato y actualizar la pantalla cuando ese dato cambia. |
 | **`useEffect`** | Una herramienta de React que realiza una tarea cuando cambian los datos. Aquí ayuda a guardar la lista cuando se modifica. |
+| **React Router** | La herramienta que permite cambiar entre Inicio, Tareas y Detalle sin volver a cargar toda la página. |
+| **`BrowserRouter`** | Activa la navegación y conecta las direcciones con el historial del navegador. Se prepara una sola vez al iniciar la app. |
+| **`Routes` y `Route`** | Son la lista de direcciones que entiende la aplicación y la página que se muestra para cada una. |
+| **Layout** | El marco que comparten varias páginas, como el encabezado, el menú y el pie. |
+| **`Outlet`** | El espacio dentro del marco donde aparece la página elegida. |
+| **Ruta índice** | La página que se muestra al entrar a la dirección principal `/`. Aquí es Inicio. |
+| **Ruta dinámica (`:taskId`)** | Una dirección con un espacio variable. En `/tasks/:taskId`, ese espacio indica qué tarea abrir. |
+| **`Link`** | Un enlace para moverse a otra página de la app sin recargarla por completo. |
+| **`NavLink`** | Un enlace de navegación que también permite marcar visualmente la página actual. |
+| **`useParams`** | Lee el identificador que aparece en la dirección de detalle para buscar la tarea correcta. |
+| **`useNavigate`** | Permite cambiar de página después de una acción, como volver a la lista cuando se elimina una tarea. |
+| **SPA / página única** | Aplicación que cambia sus páginas dentro del navegador sin pedir que se cargue de nuevo el sitio completo en cada clic. |
+| **Página 404** | Aviso que explica que la dirección solicitada no existe. |
 | **Hook** | El nombre que reciben herramientas especiales de React, como `useState`, para recordar datos o realizar tareas. |
 | **`interface`** | Una lista que describe qué datos debe tener algo. La tarea, por ejemplo, debe tener título, estado e identificador. |
 | **`type`** | Una manera de dar nombre a una regla sobre los datos, como la lista de estados permitidos para una tarea. |

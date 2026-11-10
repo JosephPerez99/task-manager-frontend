@@ -6,7 +6,7 @@ interface TaskListProps {
   emptyMessage: string;
   onToggleStatus: (id: string) => void;
   onEditTask: (id: string, title: string) => void;
-  onDeleteTask: (id: string) => void;
+  onDeleteTask: (id: string) => boolean;
 }
 
 export function TaskList({
@@ -32,7 +32,7 @@ export function TaskList({
             Actividades
           </p>
           <h2 id="task-list-title">
-            Lista de tareas
+            Tareas registradas
           </h2>
         </div>
 

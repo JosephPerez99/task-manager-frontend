@@ -1,25 +1,19 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { Link } from 'react-router';
 import type { Task } from '../models/task.interface';
 import {
   TASK_TITLE_MAX_LENGTH,
   validateTaskTitle,
 } from '../utils/task-validation';
 import { TaskStatusBadge } from './TaskStatusBadge';
+import { formatTaskDate } from '../utils/date';
 
 interface TaskItemProps {
   task: Task;
   onToggleStatus: (id: string) => void;
   onEditTask: (id: string, title: string) => void;
-  onDeleteTask: (id: string) => void;
-}
-
-function formatTaskDate(value: string): string {
-  const date = new Date(value);
-
-  return new Intl.DateTimeFormat('es-MX', {
-    dateStyle: 'medium',
-  }).format(date);
+  onDeleteTask: (id: string) => boolean;
 }
 
 export function TaskItem({
@@ -70,7 +64,7 @@ export function TaskItem({
 
   return (
     <article
-      className="task-item"
+      className={`task-item task-item--${status}`}
       role="listitem"
     >
       <div className="task-item__content">
@@ -137,6 +131,12 @@ export function TaskItem({
           role="group"
           aria-label={`Acciones para ${title}`}
         >
+          <Link
+            className="button-link button-link--secondary"
+            to={`/tasks/${id}`}
+          >
+            Ver detalle
+          </Link>
           <button
             type="button"
             onClick={() => onToggleStatus(id)}
